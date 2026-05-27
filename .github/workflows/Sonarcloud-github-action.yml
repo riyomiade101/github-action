@@ -1,29 +1,21 @@
 
-name: Run sonarQube with maven
-on:
-  # Trigger analysis when pushing to your main branches, and when creating a pull request.
-  push:
-    branches:
-      - main
-      - master
-      - develop
-      - 'releases/**'
-  pull_request:
-      types: [opened, synchronize, reopened]
+name: Run SonarQube with Maven
 
-name: Main Workflow
+on: push
+
 jobs:
-  sonarqube:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
       with:
-        # Disabling shallow clones is recommended for improving the relevancy of reporting
-        fetch-depth: 0
-    - name: SonarQube Scan
-      uses: SonarSource/sonarqube-scan-action@<action version or sha1> # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
+        java-version: '21'
+        distribution: 'zulu'
+        cache: maven
+    - name: Build with Maven cloud
+      run:  mvn -B verify sonar:sonar -Dsonar.projectKey=javaprojectreachability -Dsonar.organization=javaprojectreachability231 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN
       env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        sonar.organization: javaprojectreachability231
-        sonar.projectKey: javaprojectreachability
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN}} 
